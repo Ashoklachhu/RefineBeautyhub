@@ -21,7 +21,7 @@ export function HeroSection() {
 
         {/* ── LEFT — text panel ──────────────────────────────────── */}
         <div className="relative z-10 flex flex-col justify-center
-                        px-6 sm:px-10 md:px-14 lg:px-16 xl:px-24
+                        px-4 sm:px-6 md:px-14 lg:px-16 xl:px-24
                         pt-28 sm:pt-32 pb-10 lg:pb-16
                         w-full lg:w-[55%] xl:w-[52%]">
 
