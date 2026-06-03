@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import { Cormorant_Garamond, Inter, Playfair_Display } from 'next/font/google'
+import Script from 'next/script'
 import { Providers } from '@/providers'
 import './globals.css'
 
@@ -79,6 +80,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     >
       <body className="min-h-full flex flex-col bg-background text-foreground overflow-x-hidden">
         <Providers>{children}</Providers>
+        {/* ChatBot Widget */}
+        <Script
+          src="https://kuro-production-280f.up.railway.app/widget.js"
+          data-token="35cc5f69-9d74-4b84-87d3-c69ddc40c09d"
+          strategy="afterInteractive"
+        />
       </body>
     </html>
   )
