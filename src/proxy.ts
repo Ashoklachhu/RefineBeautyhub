@@ -11,7 +11,31 @@ const ADMIN_ROUTES = ['/admin']
 // Routes only for unauthenticated users (redirect logged-in users away)
 const AUTH_ROUTES = ['/login', '/register', '/forgot-password']
 
+// ── "Coming Soon" mode ─────────────────────────────────────────
+// Set COMING_SOON_MODE=true in env to hide the public site behind a
+// simple coming-soon page while keeping admin/auth routes accessible
+// for continued work. Toggle off (or remove) the env var to go live.
+const COMING_SOON_ALLOWED_PREFIXES = [
+  '/coming-soon',
+  '/admin',
+  '/login',
+  '/register',
+  '/forgot-password',
+  '/api',
+]
+
 export async function proxy(request: NextRequest) {
+  const path = request.nextUrl.pathname
+
+  if (process.env.COMING_SOON_MODE === 'true') {
+    const isAllowed = COMING_SOON_ALLOWED_PREFIXES.some((p) => path.startsWith(p))
+    if (!isAllowed) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/coming-soon'
+      return NextResponse.rewrite(url)
+    }
+  }
+
   let supabaseResponse = NextResponse.next({ request })
 
   const supabase = createServerClient(
@@ -37,8 +61,6 @@ export async function proxy(request: NextRequest) {
   const {
     data: { user },
   } = await supabase.auth.getUser()
-
-  const path = request.nextUrl.pathname
 
   // ── Redirect unauthenticated users away from protected routes ─
   const isProtected = PROTECTED_ROUTES.some((r) => path.startsWith(r))
