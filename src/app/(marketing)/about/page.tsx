@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { ArrowRight, CalendarCheck } from 'lucide-react'
 
@@ -92,19 +93,18 @@ export default function AboutPage() {
             </motion.div>
 
             <motion.div {...fade(0.2)}
-              className="relative aspect-[4/3] rounded-sm overflow-hidden"
+              className="relative aspect-[3/2] rounded-sm overflow-hidden"
               style={{ background: '#e8ddd4' }}>
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="text-center" style={{ opacity: 0.2 }}>
-                  <div className="w-24 h-24 rounded-full border-2 flex items-center justify-center mx-auto mb-3"
-                    style={{ borderColor: '#b8976b' }}>
-                    <span className="text-3xl font-light" style={{ fontFamily: 'var(--font-cormorant)', color: '#b8976b' }}>RB</span>
-                  </div>
-                  <p className="text-[10px] tracking-[0.3em] uppercase font-medium" style={{ color: '#b8976b' }}>Salon Photo</p>
-                </div>
-              </div>
-              <div className="absolute top-4 left-4 w-8 h-8 border-t border-l" style={{ borderColor: '#b8976b55' }} />
-              <div className="absolute bottom-4 right-4 w-8 h-8 border-b border-r" style={{ borderColor: '#b8976b55' }} />
+              <Image
+                src="https://res.cloudinary.com/dosxengut/image/upload/v1784997802/1_p4xmnt.jpg"
+                alt="The Refined Beauty Hub team at our salon in Lazimpat, Kathmandu"
+                fill
+                priority
+                className="object-cover"
+                sizes="(max-width: 1024px) 100vw, 50vw"
+              />
+              <div className="absolute top-4 left-4 w-8 h-8 border-t border-l z-10" style={{ borderColor: '#b8976b55' }} />
+              <div className="absolute bottom-4 right-4 w-8 h-8 border-b border-r z-10" style={{ borderColor: '#b8976b55' }} />
             </motion.div>
           </div>
         </div>

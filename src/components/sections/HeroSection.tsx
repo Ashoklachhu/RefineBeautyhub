@@ -16,14 +16,16 @@ export function HeroSection() {
     <section className="relative overflow-hidden" style={{ background: '#F9F5F0' }}>
 
       {/* ── Mobile layout: stacked column ──────────────────────── */}
-      {/* ── Desktop layout: side-by-side row ───────────────────── */}
-      <div className="flex flex-col lg:flex-row min-h-[100svh] lg:min-h-[75vh]">
+      {/* ── Desktop layout: full-width banner, text overlaid on the
+             empty left area. The banner keeps its native 1720×914
+             aspect ratio so it looks identical on every screen. ──── */}
+      <div className="flex flex-col lg:block min-h-[100svh] lg:min-h-0">
 
         {/* ── LEFT — text panel ──────────────────────────────────── */}
-        <div className="relative z-10 flex flex-col justify-center
+        <div className="relative z-20 flex flex-col justify-center
                         px-4 sm:px-6 md:px-14 lg:px-16 xl:px-24
-                        pt-28 sm:pt-32 pb-10 lg:pb-16
-                        w-full lg:w-[55%] xl:w-[52%]">
+                        pt-28 sm:pt-32 pb-10 lg:pt-20 lg:pb-0
+                        w-full lg:absolute lg:top-0 lg:bottom-0 lg:left-0 lg:w-[52%] xl:w-[48%]">
 
           {/* Eyebrow */}
           <motion.p {...fade(0.1)}
@@ -35,7 +37,7 @@ export function HeroSection() {
 
           {/* Headline */}
           <motion.h1 {...fade(0.2)}
-            className="text-[2.2rem] sm:text-5xl lg:text-[3.5rem] xl:text-[4rem]
+            className="text-[2.2rem] sm:text-5xl lg:text-[3.4vw]
                        leading-[1.08] font-light mb-5"
             style={{ fontFamily: 'var(--font-cormorant)', color: '#1a1410' }}>
             Refine Your Beauty,<br />
@@ -87,22 +89,22 @@ export function HeroSection() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
-          className="relative w-full lg:absolute lg:right-0 lg:top-0 lg:bottom-0 lg:w-[48%] xl:w-[50%]
-                     h-[55vw] sm:h-[45vw] lg:h-auto"
+          className="relative w-full h-[55vw] sm:h-[45vw] lg:h-auto lg:aspect-[1720/914]"
         >
           <div className="w-full h-full relative overflow-hidden">
             <Image
-              src="https://res.cloudinary.com/dosxengut/image/upload/v1778961040/Gemini_Generated_Image_mx125vmx125vmx12_ok584a.png"
+              src="https://res.cloudinary.com/dosxengut/image/upload/v1784980935/web-banner_e98ttk.png"
               alt="Refined Beauty Hub — luxury beauty services"
               fill
               priority
               className="object-cover object-top"
-              sizes="(max-width: 1024px) 100vw, 50vw"
+              sizes="100vw"
             />
 
-            {/* Left-edge blend into hero bg — desktop only */}
-            <div className="absolute left-0 top-0 bottom-0 w-32 z-10 hidden lg:block"
-              style={{ background: 'linear-gradient(to right, #F9F5F0, transparent)' }} />
+            {/* Soft cream wash over the empty left side so the overlaid
+                text stays readable — desktop only */}
+            <div className="absolute left-0 top-0 bottom-0 w-[60%] z-10 hidden lg:block"
+              style={{ background: 'linear-gradient(to right, rgba(249,245,240,0.95) 0%, rgba(249,245,240,0.45) 45%, transparent 75%)' }} />
 
             {/* Top fade — mobile only */}
             <div className="absolute top-0 left-0 right-0 h-16 z-10 lg:hidden"

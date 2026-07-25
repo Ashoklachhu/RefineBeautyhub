@@ -40,8 +40,8 @@ export function AboutPreview() {
             {/* Top image */}
             <div className="rounded-sm overflow-hidden mb-3 relative" style={{ height: 240 }}>
               <Image
-                src="https://res.cloudinary.com/dosxengut/image/upload/v1778961728/489e3a9554d378d489e6e47b7363207c_o3gp1p.jpg"
-                alt="Refined Beauty Hub salon interior"
+                src="https://res.cloudinary.com/dosxengut/image/upload/v1785003534/lashes_nywohv.jpg"
+                alt="Lash treatment at Refined Beauty Hub"
                 fill
                 sizes="(max-width: 1024px) 100vw, 33vw"
                 className="object-cover object-center"
@@ -50,8 +50,8 @@ export function AboutPreview() {
             {/* Bottom image — offset right */}
             <div className="rounded-sm overflow-hidden ml-10 relative" style={{ height: 180 }}>
               <Image
-                src="https://res.cloudinary.com/dosxengut/image/upload/v1778961728/489e3a9554d378d489e6e47b7363207c_o3gp1p.jpg"
-                alt="Refined Beauty Hub salon interior"
+                src="https://res.cloudinary.com/dosxengut/image/upload/v1785002212/micro_bleding_2_sudnr6.jpg"
+                alt="Microblading treatment at Refined Beauty Hub"
                 fill
                 sizes="(max-width: 1024px) 100vw, 33vw"
                 className="object-cover object-center"

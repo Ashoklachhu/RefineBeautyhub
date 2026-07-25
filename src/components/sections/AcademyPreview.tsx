@@ -1,6 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
+import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowRight, Users, BookOpen, Award, Briefcase } from 'lucide-react'
 
@@ -93,20 +94,17 @@ export function AcademyPreview() {
             className="relative rounded-sm overflow-hidden"
             style={{ height: 460, background: '#2d2419' }}
           >
-            {/* Image placeholder */}
-            <div className="w-full h-full flex items-center justify-center">
-              <div className="text-center" style={{ opacity: 0.2 }}>
-                <div className="w-36 h-36 rounded-full border-2 flex items-center justify-center mx-auto mb-4"
-                  style={{ borderColor: '#b8976b' }}>
-                  <span className="text-4xl font-light" style={{ fontFamily: 'var(--font-cormorant)', color: '#b8976b' }}>RB</span>
-                </div>
-                <p className="text-xs tracking-[0.3em] uppercase" style={{ color: '#b8976b' }}>Academy Image</p>
-              </div>
-            </div>
+            <Image
+              src="https://res.cloudinary.com/dosxengut/image/upload/v1785003672/Microbladingtraining_beqlyj.jpg"
+              alt="Professional beauty training at Refined Beauty Hub Academy"
+              fill
+              sizes="(max-width: 1024px) 100vw, 50vw"
+              className="object-cover object-center"
+            />
 
             {/* Decorative corner lines */}
-            <div className="absolute top-4 left-4 w-12 h-12 border-t border-l" style={{ borderColor: '#b8976b55' }} />
-            <div className="absolute bottom-4 right-4 w-12 h-12 border-b border-r" style={{ borderColor: '#b8976b55' }} />
+            <div className="absolute top-4 left-4 w-12 h-12 border-t border-l z-10" style={{ borderColor: '#b8976b55' }} />
+            <div className="absolute bottom-4 right-4 w-12 h-12 border-b border-r z-10" style={{ borderColor: '#b8976b55' }} />
           </motion.div>
         </div>
       </div>
