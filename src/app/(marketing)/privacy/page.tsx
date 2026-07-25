@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { SITE } from '@/constants'
+import { loadSiteSettings } from '@/lib/settings'
 
 export const metadata: Metadata = {
   title: 'Privacy Policy',
@@ -64,7 +65,7 @@ const SECTIONS = [
       'You have the right to access the personal information we hold about you.',
       'You may request correction of inaccurate data or deletion of your information.',
       'You may withdraw consent for marketing communications at any time.',
-      'To exercise any of these rights, please contact us at ' + SITE.email + '.',
+      'To exercise any of these rights, please contact us using the details below.',
     ],
   },
   {
@@ -94,7 +95,12 @@ const SECTIONS = [
   },
 ]
 
-export default function PrivacyPage() {
+export default async function PrivacyPage() {
+  const settings = await loadSiteSettings()
+  const email   = settings?.email   ?? SITE.email
+  const phone   = settings?.phone   ?? SITE.phone
+  const address = settings?.address ?? SITE.address
+
   return (
     <div className="bg-white">
       {/* Hero */}
@@ -140,17 +146,17 @@ export default function PrivacyPage() {
                 {section.contact && (
                   <div className="mt-4 p-5 rounded-xl bg-gray-50 border border-gray-100 space-y-1.5 text-sm text-gray-600">
                     <p><strong className="text-gray-900">Refined Beauty Hub</strong></p>
-                    <p>{SITE.address}</p>
+                    <p>{address}</p>
                     <p>
                       Email:{' '}
-                      <a href={`mailto:${SITE.email}`} className="text-amber-600 hover:text-amber-700">
-                        {SITE.email}
+                      <a href={`mailto:${email}`} className="text-amber-600 hover:text-amber-700">
+                        {email}
                       </a>
                     </p>
                     <p>
                       Phone:{' '}
-                      <a href={`tel:${SITE.phone}`} className="text-amber-600 hover:text-amber-700">
-                        {SITE.phone}
+                      <a href={`tel:${phone.replace(/[^+0-9]/g, '')}`} className="text-amber-600 hover:text-amber-700">
+                        {phone}
                       </a>
                     </p>
                   </div>

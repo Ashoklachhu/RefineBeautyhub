@@ -8,8 +8,12 @@ import { VideoGallery } from '@/components/sections/VideoGallery'
 import { CTABanner } from '@/components/sections/CTABanner'
 import { FAQSection } from '@/components/sections/FAQSection'
 import { FooterCTA } from '@/components/sections/FooterCTA'
+import { loadSiteSettings } from '@/lib/settings'
+import { SITE } from '@/constants'
 
-export default function HomePage() {
+export default async function HomePage() {
+  const settings = await loadSiteSettings()
+
   return (
     <>
       <HeroSection />
@@ -19,7 +23,7 @@ export default function HomePage() {
       <TeamSection />
       <AcademyPreview />
       <TestimonialsSection />
-      <CTABanner />
+      <CTABanner phone={settings?.phone ?? SITE.phone} />
       <FAQSection />
       <FooterCTA />
     </>

@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { CalendarCheck, Phone, ArrowRight } from 'lucide-react'
 import { SITE } from '@/constants'
 
-export function CTABanner() {
+export function CTABanner({ phone = SITE.phone }: { phone?: string } = {}) {
   return (
     <section className="relative overflow-hidden py-20 lg:py-28" style={{ background: '#1a1410' }}>
       {/* Dot texture */}
@@ -58,7 +58,7 @@ export function CTABanner() {
               Book Appointment
               <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
             </Link>
-            <a href={`tel:${SITE.phone.replace(/[^+0-9]/g, '')}`}
+            <a href={`tel:${phone.replace(/[^+0-9]/g, '')}`}
               className="inline-flex items-center gap-2.5 px-8 py-4 text-xs font-semibold
                          tracking-[0.15em] uppercase border rounded-sm transition-all group"
               style={{ borderColor: '#b8976b66', color: '#c9a87a' }}
@@ -71,7 +71,7 @@ export function CTABanner() {
                 e.currentTarget.style.background = 'transparent'
               }}>
               <Phone className="w-4 h-4" />
-              {SITE.phone}
+              {phone}
             </a>
           </div>
         </motion.div>
