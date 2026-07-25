@@ -53,6 +53,5 @@ export async function createBookingAction(
 
   if (result.error) return { error: result.error.message }
 
-  // WhatsApp is sent only when admin confirms/cancels/completes — not on creation.
   return { reference: result.data.reference }
 }

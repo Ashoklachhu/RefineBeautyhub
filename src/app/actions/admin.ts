@@ -1,15 +1,10 @@
 'use server'
 
 import { createServiceClient } from '@/lib/supabase/server'
-import {
-  sendBookingConfirmation,
-  sendBookingCancellation,
-  sendBookingCompleted,
-} from '@/services/whatsapp.service'
-import { BRANCHES } from '@/constants'
+import { MAX_GALLERY_VIDEOS, isPlayableVideoUrl } from '@/lib/video'
 import type {
   Booking, BookingStatus, BookingSource, Service, AcademyCourse,
-  Staff, GalleryItem, Testimonial, Profile, Category,
+  Staff, GalleryItem, VideoGalleryItem, Testimonial, Profile, Category,
   Enrollment, EnrollmentStatus, SiteSettings, AnnouncementBar,
   ContactInquiry, InquiryNote, InquiryStatus, InquiryPriority, NoteType,
 } from '@/types/database'
@@ -112,7 +107,6 @@ export async function adminGetBookings(filters: {
 export async function adminUpdateBookingStatus(
   id: string, status: BookingStatus
 ): Promise<{ error?: string }> {
-  // 1. Apply the status update
   const updates: Record<string, unknown> = { status }
   if (status === 'confirmed') updates.confirmed_at = new Date().toISOString()
   if (status === 'completed') updates.completed_at = new Date().toISOString()
@@ -120,76 +114,6 @@ export async function adminUpdateBookingStatus(
 
   const { error } = await db().from('bookings').update(updates).eq('id', id)
   if (error) return { error: error.message }
-
-  // 2. Fire WhatsApp notification for statuses the client cares about.
-  //    Fetch full booking details (fire-and-forget — never blocks the response).
-  if (status === 'confirmed' || status === 'cancelled' || status === 'completed') {
-    ;(async () => {
-      try {
-        const { data: booking } = await db()
-          .from('bookings')
-          .select(`
-            *,
-            service:services!service_id(name, duration_minutes),
-            staff:staff!staff_id(name),
-            profile:profiles!user_id(full_name, phone)
-          `)
-          .eq('id', id)
-          .single()
-
-        if (!booking) return
-
-        // Resolve phone — prefer guest_phone, fall back to profile phone
-        const phone = (booking.guest_phone ?? (booking as { profile?: { phone?: string | null } }).profile?.phone) ?? null
-        if (!phone) return
-
-        const clientName  = (booking as { profile?: { full_name?: string } }).profile?.full_name ?? booking.guest_name ?? 'Valued Client'
-        const svc         = (booking as { service?: { name: string; duration_minutes: number } }).service
-        const staffMember = (booking as { staff?: { name: string } }).staff
-        const branch      = BRANCHES.find(b => b.id === booking.branch)
-
-        if (status === 'confirmed' && svc) {
-          sendBookingConfirmation({
-            clientName,
-            phone,
-            reference:       booking.reference,
-            serviceName:     svc.name,
-            durationMinutes: svc.duration_minutes,
-            staffName:       staffMember?.name,
-            bookingDate:     booking.booking_date,
-            startTime:       booking.start_time,
-            endTime:         booking.end_time,
-            totalAmount:     Number(booking.total_amount),
-            status:          'confirmed',
-            branchName:      branch?.name,
-            branchAddress:   branch?.address,
-          }).catch(err => console.error('[WhatsApp] Confirmation error:', err))
-        }
-
-        if (status === 'cancelled' && svc) {
-          sendBookingCancellation({
-            clientName,
-            phone,
-            reference:   booking.reference,
-            serviceName: svc.name,
-            bookingDate: booking.booking_date,
-            startTime:   booking.start_time,
-          }).catch(err => console.error('[WhatsApp] Cancellation error:', err))
-        }
-
-        if (status === 'completed' && svc) {
-          sendBookingCompleted({
-            clientName,
-            phone,
-            reference:   booking.reference,
-            serviceName: svc.name,
-          }).catch(err => console.error('[WhatsApp] Completed error:', err))
-        }
-      } catch (err) {
-        console.error('[WhatsApp] Failed to fetch booking for notification:', err)
-      }
-    })()
-  }
 
   return {}
 }
@@ -345,6 +269,101 @@ export async function adminDeleteGalleryItem(id: string): Promise<{ error?: stri
 export async function adminToggleGalleryFeatured(id: string, featured: boolean): Promise<{ error?: string }> {
   const { error } = await db().from('gallery').update({ is_featured: featured }).eq('id', id)
   return { error: error?.message }
+}
+
+// ── Video Gallery ─────────────────────────────────────────────
+
+export async function adminGetVideos() {
+  const { data } = await db()
+    .from('video_gallery')
+    .select('*')
+    .order('display_order')
+  return (data ?? []) as VideoGalleryItem[]
+}
+
+export async function adminAddVideo(values: {
+  video_url: string; title?: string; caption?: string; poster_url?: string
+}): Promise<{ error?: string }> {
+  const url = values.video_url.trim()
+  if (!isPlayableVideoUrl(url)) {
+    return { error: 'That does not look like a video URL. Paste the Cloudinary link ending in .mp4' }
+  }
+
+  const existing = await adminGetVideos()
+  if (existing.length >= MAX_GALLERY_VIDEOS) {
+    return { error: `The gallery holds ${MAX_GALLERY_VIDEOS} videos. Delete one to add another.` }
+  }
+  if (existing.some(v => v.video_url === url)) {
+    return { error: 'That video is already in the gallery.' }
+  }
+
+  const nextOrder = existing.reduce((max, v) => Math.max(max, v.display_order), -1) + 1
+
+  const { error } = await db().from('video_gallery').insert({
+    video_url:     url,
+    title:         values.title?.trim()      || null,
+    caption:       values.caption?.trim()    || null,
+    poster_url:    values.poster_url?.trim() || null,
+    is_published:  true,
+    display_order: nextOrder,
+  })
+  return { error: error?.message }
+}
+
+export async function adminUpdateVideo(
+  id: string,
+  values: { title?: string | null; caption?: string | null; poster_url?: string | null }
+): Promise<{ error?: string }> {
+  const { error } = await db()
+    .from('video_gallery')
+    .update({
+      title:      values.title?.trim()      || null,
+      caption:    values.caption?.trim()    || null,
+      poster_url: values.poster_url?.trim() || null,
+    })
+    .eq('id', id)
+  return { error: error?.message }
+}
+
+export async function adminDeleteVideo(id: string): Promise<{ error?: string }> {
+  const { error } = await db().from('video_gallery').delete().eq('id', id)
+  return { error: error?.message }
+}
+
+export async function adminToggleVideoPublished(
+  id: string, published: boolean
+): Promise<{ error?: string }> {
+  const { error } = await db()
+    .from('video_gallery')
+    .update({ is_published: published })
+    .eq('id', id)
+  return { error: error?.message }
+}
+
+/** Moves one video up or down, then renumbers so display_order stays 0..n-1. */
+export async function adminMoveVideo(
+  id: string, direction: 'up' | 'down'
+): Promise<{ error?: string }> {
+  const videos = await adminGetVideos()
+  const from   = videos.findIndex(v => v.id === id)
+  if (from === -1) return { error: 'Video not found' }
+
+  const to = direction === 'up' ? from - 1 : from + 1
+  if (to < 0 || to >= videos.length) return {}
+
+  const reordered = [...videos]
+  ;[reordered[from], reordered[to]] = [reordered[to], reordered[from]]
+
+  const supabase = db()
+  for (const [index, video] of reordered.entries()) {
+    if (video.display_order === index) continue
+    const { error } = await supabase
+      .from('video_gallery')
+      .update({ display_order: index })
+      .eq('id', video.id)
+    if (error) return { error: error.message }
+  }
+  return {}
 }
 
 // ── Testimonials ──────────────────────────────────────────────
@@ -745,7 +764,6 @@ export async function adminCreateBooking(
     staff_notes?: string | null
   }
 ): Promise<{ id?: string; reference?: string; error?: string }> {
-  // Created as 'pending' — WhatsApp is sent only when admin explicitly confirms.
   const { data, error } = await db()
     .from('bookings')
     .insert({ ...values, status: 'pending' })

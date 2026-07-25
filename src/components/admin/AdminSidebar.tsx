@@ -6,7 +6,7 @@ import { useState } from 'react'
 import {
   LayoutDashboard, CalendarCheck, Scissors, GraduationCap, Users,
   Image, Star, UserCog, BarChart3, Settings, X, Menu, Sparkles, BookOpen,
-  MessageSquare, Package, ShoppingBag,
+  MessageSquare, Package, ShoppingBag, Film,
 } from 'lucide-react'
 
 const NAV = [
@@ -20,6 +20,7 @@ const NAV = [
   { label: 'Courses',           href: '/admin/courses',            icon: GraduationCap },
   { label: 'Staff',             href: '/admin/staff',              icon: UserCog },
   { label: 'Gallery',           href: '/admin/gallery',            icon: Image },
+  { label: 'Video Gallery',     href: '/admin/videos',             icon: Film },
   { label: 'Testimonials',      href: '/admin/testimonials',       icon: Star },
   { label: 'Users',             href: '/admin/users',              icon: Users },
   { label: 'Analytics',         href: '/admin/analytics',          icon: BarChart3 },

@@ -196,6 +196,17 @@ export interface Testimonial {
   created_at:       string
 }
 
+export interface VideoGalleryItem {
+  id:            string
+  video_url:     string
+  poster_url:    string | null
+  title:         string | null
+  caption:       string | null
+  is_published:  boolean
+  display_order: number
+  created_at:    string
+}
+
 export interface GalleryItem {
   id:            string
   image_url:     string
@@ -396,6 +407,7 @@ export interface Database {
       enrollments:        { Row: Enrollment;      Insert: EnrollmentInsert;     Update: Partial<EnrollmentInsert> }
       testimonials:       { Row: Testimonial;     Insert: TestimonialInsert;    Update: Partial<TestimonialInsert> }
       gallery:            { Row: GalleryItem;     Insert: Omit<GalleryItem,'id'|'created_at'>; Update: Partial<GalleryItem> }
+      video_gallery:      { Row: VideoGalleryItem; Insert: Omit<VideoGalleryItem,'id'|'created_at'>; Update: Partial<VideoGalleryItem> }
       contact_inquiries:  { Row: ContactInquiry;  Insert: ContactInquiryInsert; Update: Partial<ContactInquiry> }
       inquiry_notes:      { Row: InquiryNote;     Insert: Omit<InquiryNote,'id'|'created_at'>; Update: Partial<InquiryNote> }
       site_settings:      { Row: SiteSettings;       Insert: Partial<SiteSettings>;    Update: Partial<SiteSettings> }

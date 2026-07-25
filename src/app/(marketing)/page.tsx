@@ -4,6 +4,7 @@ import { AboutPreview } from '@/components/sections/AboutPreview'
 import { TeamSection } from '@/components/sections/TeamSection'
 import { AcademyPreview } from '@/components/sections/AcademyPreview'
 import { TestimonialsSection } from '@/components/sections/TestimonialsSection'
+import { VideoGallery } from '@/components/sections/VideoGallery'
 import { GalleryPreview } from '@/components/sections/GalleryPreview'
 import { CTABanner } from '@/components/sections/CTABanner'
 import { FAQSection } from '@/components/sections/FAQSection'
@@ -13,6 +14,7 @@ export default function HomePage() {
   return (
     <>
       <HeroSection />
+      <VideoGallery />
       <FeaturedServices />
       <AboutPreview />
       <TeamSection />
