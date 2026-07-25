@@ -5,7 +5,6 @@ import { TeamSection } from '@/components/sections/TeamSection'
 import { AcademyPreview } from '@/components/sections/AcademyPreview'
 import { TestimonialsSection } from '@/components/sections/TestimonialsSection'
 import { VideoGallery } from '@/components/sections/VideoGallery'
-import { GalleryPreview } from '@/components/sections/GalleryPreview'
 import { CTABanner } from '@/components/sections/CTABanner'
 import { FAQSection } from '@/components/sections/FAQSection'
 import { FooterCTA } from '@/components/sections/FooterCTA'
@@ -20,7 +19,6 @@ export default function HomePage() {
       <TeamSection />
       <AcademyPreview />
       <TestimonialsSection />
-      <GalleryPreview />
       <CTABanner />
       <FAQSection />
       <FooterCTA />
