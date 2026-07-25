@@ -2,9 +2,12 @@
 
 import { useState, useTransition } from 'react'
 import { toast } from 'sonner'
-import { Save, Clock, MapPin, Globe, Camera, PlayCircle, Loader2, Megaphone, Link as LinkIcon, ToggleLeft, ToggleRight } from 'lucide-react'
+import { Save, Clock, MapPin, Globe, Loader2, Megaphone, Link as LinkIcon, ToggleLeft, ToggleRight } from 'lucide-react'
 import { upsertSettings, upsertAnnouncementBar } from '@/app/actions/admin'
-import type { SiteSettings, OpeningHourEntry, AnnouncementBar } from '@/types/database'
+import { BranchesEditor } from './BranchesEditor'
+import { FALLBACK_BRANCHES, branchIdFromName } from '@/lib/branches'
+import { InstagramIcon, FacebookIcon, YouTubeIcon, TikTokIcon } from '@/components/icons/SocialIcons'
+import type { SiteSettings, OpeningHourEntry, AnnouncementBar, BranchInfo } from '@/types/database'
 
 // ── Constants ─────────────────────────────────────────────────
 
@@ -28,6 +31,7 @@ const DEFAULT_SETTINGS: Omit<SiteSettings, 'id' | 'updated_at'> = {
   facebook:         'https://facebook.com/refinedbeautyhub',
   youtube:          'https://youtube.com/@refinedbeautyhub',
   tiktok:           'https://tiktok.com/@refinedbeautyhub',
+  branches:         FALLBACK_BRANCHES,
   opening_hours:    DEFAULT_HOURS,
   meta_title:       'Refined Beauty Hub — Luxury Salon & Academy, Kathmandu',
   meta_description: "Kathmandu's premier luxury beauty salon and academy. Expert services in hair, skin, nails, makeup, and professional beauty training.",
@@ -83,9 +87,11 @@ export function SettingsClient({ initialSettings, initialAnnouncement }: Setting
     tagline: merged.tagline,
     email:   merged.email,
     phone:   merged.phone,
-    address: merged.address,
-    map_url: merged.map_url,
   })
+
+  const [branches, setBranches] = useState<BranchInfo[]>(
+    () => (merged.branches?.length ? merged.branches : FALLBACK_BRANCHES)
+  )
 
   const [hours, setHours] = useState<Record<string, OpeningHourEntry>>(
     () => hoursToMap(merged.opening_hours?.length ? merged.opening_hours : DEFAULT_HOURS)
@@ -105,11 +111,34 @@ export function SettingsClient({ initialSettings, initialAnnouncement }: Setting
   })
 
   function handleSave() {
+    const cleanBranches = branches
+      .map(b => ({
+        id:      b.id || branchIdFromName(b.name),
+        name:    b.name.trim(),
+        address: b.address.trim(),
+        phone:   b.phone.trim(),
+        map_url: b.map_url.trim(),
+      }))
+      .filter(b => b.name && b.address)
+
+    const incomplete = branches.length - cleanBranches.length
+    if (incomplete > 0) {
+      toast.error(`${incomplete} branch${incomplete > 1 ? 'es need' : ' needs'} a name and address before saving`)
+      return
+    }
+
     startTransition(async () => {
+      const primary = cleanBranches[0]
+
       const { error } = await upsertSettings({
         ...business,
         ...social,
         ...seo,
+        branches: cleanBranches,
+        // The single address fields still feed SEO and older pages — keep them
+        // pointing at whichever branch sits first in the list.
+        address: primary?.address ?? merged.address,
+        map_url: primary?.map_url ?? merged.map_url,
         opening_hours: mapToHours(hours),
       })
       if (error) {
@@ -264,20 +293,11 @@ export function SettingsClient({ initialSettings, initialAnnouncement }: Setting
                   onChange={e => setBusiness(p => ({ ...p, phone: e.target.value }))}
                   className="admin-input w-full" />
               </div>
-              <div className="sm:col-span-2 space-y-1.5">
-                <label className="text-xs text-gray-600 dark:text-neutral-300">Address</label>
-                <input value={business.address}
-                  onChange={e => setBusiness(p => ({ ...p, address: e.target.value }))}
-                  className="admin-input w-full" />
-              </div>
-              <div className="sm:col-span-2 space-y-1.5">
-                <label className="text-xs text-gray-600 dark:text-neutral-300">Google Maps Link</label>
-                <input type="url" value={business.map_url}
-                  onChange={e => setBusiness(p => ({ ...p, map_url: e.target.value }))}
-                  className="admin-input w-full"
-                  placeholder="https://maps.google.com/..." />
-              </div>
             </div>
+
+            <div className="pt-2 border-t border-gray-200 dark:border-white/10" />
+
+            <BranchesEditor branches={branches} onChange={setBranches} />
           </>
         )}
 
@@ -336,10 +356,10 @@ export function SettingsClient({ initialSettings, initialAnnouncement }: Setting
             </h3>
             <div className="space-y-3">
               {[
-                { key: 'instagram', label: 'Instagram', icon: Camera,     placeholder: 'https://instagram.com/...' },
-                { key: 'facebook',  label: 'Facebook',  icon: Globe,      placeholder: 'https://facebook.com/...' },
-                { key: 'youtube',   label: 'YouTube',   icon: PlayCircle, placeholder: 'https://youtube.com/...' },
-                { key: 'tiktok',    label: 'TikTok',    icon: Globe,      placeholder: 'https://tiktok.com/...' },
+                { key: 'instagram', label: 'Instagram', icon: InstagramIcon, placeholder: 'https://instagram.com/...' },
+                { key: 'facebook',  label: 'Facebook',  icon: FacebookIcon,  placeholder: 'https://facebook.com/...' },
+                { key: 'youtube',   label: 'YouTube',   icon: YouTubeIcon,   placeholder: 'https://youtube.com/...' },
+                { key: 'tiktok',    label: 'TikTok',    icon: TikTokIcon,    placeholder: 'https://tiktok.com/...' },
               ].map(({ key, label, icon: Icon, placeholder }) => (
                 <div key={key} className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-lg bg-gray-100 dark:bg-neutral-800 flex items-center justify-center flex-shrink-0">

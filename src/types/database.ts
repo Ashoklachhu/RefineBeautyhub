@@ -347,6 +347,14 @@ export interface AnnouncementBar {
   updated_at: string
 }
 
+export interface BranchInfo {
+  id:      string
+  name:    string
+  address: string
+  phone:   string
+  map_url: string
+}
+
 export interface SiteSettings {
   id:               string
   name:             string
@@ -355,6 +363,7 @@ export interface SiteSettings {
   phone:            string
   address:          string
   map_url:          string
+  branches:         BranchInfo[]
   instagram:        string
   facebook:         string
   youtube:          string

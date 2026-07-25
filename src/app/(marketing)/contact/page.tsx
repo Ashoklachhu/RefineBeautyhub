@@ -1,8 +1,9 @@
 import type { Metadata } from 'next'
-import { createServiceClient } from '@/lib/supabase/server'
 import { ContactPageClient } from '@/components/sections/ContactPageClient'
 import { SITE } from '@/constants'
-import type { SiteSettings, OpeningHourEntry } from '@/types/database'
+import { resolveBranches } from '@/lib/branches'
+import { loadSiteSettings } from '@/lib/settings'
+import type { OpeningHourEntry } from '@/types/database'
 
 export const metadata: Metadata = {
   title: 'Contact Us',
@@ -19,24 +20,15 @@ const DEFAULT_HOURS: OpeningHourEntry[] = [
   { day: 'Saturday',  open: '09:00', close: '20:00', closed: false },
 ]
 
-async function loadSettings(): Promise<SiteSettings | null> {
-  try {
-    const supabase = createServiceClient()
-    const { data } = await supabase.from('site_settings').select('*').eq('id', 'main').single()
-    return data as SiteSettings | null
-  } catch { return null }
-}
-
 export default async function ContactPage() {
-  const settings = await loadSettings()
+  const settings = await loadSiteSettings()
 
   return (
     <ContactPageClient
-      phone   = {settings?.phone   ?? SITE.phone}
-      email   = {settings?.email   ?? SITE.email}
-      address = {settings?.address ?? SITE.address}
-      mapUrl  = {settings?.map_url ?? SITE.mapUrl}
-      hours   = {settings?.opening_hours?.length ? settings.opening_hours : DEFAULT_HOURS}
+      phone    = {settings?.phone ?? SITE.phone}
+      email    = {settings?.email ?? SITE.email}
+      branches = {resolveBranches(settings)}
+      hours    = {settings?.opening_hours?.length ? settings.opening_hours : DEFAULT_HOURS}
     />
   )
 }

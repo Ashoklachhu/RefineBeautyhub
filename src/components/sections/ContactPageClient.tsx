@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { Phone, Mail, MapPin, Clock, ArrowRight } from 'lucide-react'
 import { ContactForm } from './ContactForm'
+import type { BranchInfo } from '@/types/database'
 
 function fmt24(t: string): string {
   const [hStr, mStr] = t.split(':')
@@ -15,14 +16,13 @@ function fmt24(t: string): string {
 interface HourEntry { day: string; open: string; close: string; closed: boolean }
 
 interface Props {
-  phone:   string
-  email:   string
-  address: string
-  mapUrl:  string
-  hours:   HourEntry[]
+  phone:    string
+  email:    string
+  branches: BranchInfo[]
+  hours:    HourEntry[]
 }
 
-export function ContactPageClient({ phone, email, address, mapUrl, hours }: Props) {
+export function ContactPageClient({ phone, email, branches, hours }: Props) {
   const cards = [
     {
       icon: Phone, label: 'Phone & WhatsApp', value: phone,
@@ -33,11 +33,6 @@ export function ContactPageClient({ phone, email, address, mapUrl, hours }: Prop
       icon: Mail, label: 'Email', value: email,
       sub: 'We reply within 24 hours', href: `mailto:${email}`,
       external: false,
-    },
-    {
-      icon: MapPin, label: 'Location', value: address,
-      sub: 'Find us on Google Maps', href: mapUrl,
-      external: true,
     },
   ]
 
@@ -118,6 +113,59 @@ export function ContactPageClient({ phone, email, address, mapUrl, hours }: Prop
                   )
                 })}
               </div>
+
+              {/* Branches */}
+              {branches.length > 0 && (
+                <div className="mb-10">
+                  <div className="flex items-center gap-2.5 mb-4">
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+                      style={{ background: '#f5ede3', border: '1px solid #e0cdb8' }}>
+                      <MapPin className="w-3.5 h-3.5" style={{ color: '#b8976b' }} />
+                    </div>
+                    <p className="text-[10px] font-semibold tracking-[0.2em] uppercase" style={{ color: '#b8976b' }}>
+                      {branches.length > 1 ? 'Our Branches' : 'Our Location'}
+                    </p>
+                  </div>
+
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    {branches.map(branch => (
+                      <a
+                        key={branch.id || branch.name}
+                        href={branch.map_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block p-5 rounded-sm border transition-all group"
+                        style={{ borderColor: '#e8ddd4', background: '#fff' }}
+                        onMouseEnter={e => {
+                          e.currentTarget.style.borderColor = '#b8976b'
+                          e.currentTarget.style.background  = '#fdfaf7'
+                        }}
+                        onMouseLeave={e => {
+                          e.currentTarget.style.borderColor = '#e8ddd4'
+                          e.currentTarget.style.background  = '#fff'
+                        }}
+                      >
+                        <p className="text-sm font-medium mb-1.5" style={{ color: '#1a1410' }}>
+                          {branch.name}
+                        </p>
+                        <p className="text-xs leading-relaxed mb-2" style={{ color: '#7a6a5e' }}>
+                          {branch.address}
+                        </p>
+                        {branch.phone && (
+                          <p className="text-xs font-medium mb-3" style={{ color: '#3d2e25' }}>
+                            {branch.phone}
+                          </p>
+                        )}
+                        <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold tracking-[0.1em] uppercase"
+                          style={{ color: '#b8976b' }}>
+                          View on map
+                          <ArrowRight className="w-3 h-3 transition-transform group-hover:translate-x-0.5" />
+                        </span>
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Opening hours */}
               <div className="p-6 rounded-sm border" style={{ borderColor: '#e8ddd4', background: '#fff' }}>

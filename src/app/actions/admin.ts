@@ -620,6 +620,13 @@ export async function upsertSettings(
       ...values,
       updated_at: new Date().toISOString(),
     })
+
+  // Branch storage arrived in migration 017. Without it Postgres only reports
+  // "column ... does not exist", which tells an admin nothing about the fix.
+  if (error?.message?.includes('branches')) {
+    return { error: 'Branch storage is not set up yet — run migration 017_branches.sql in the Supabase SQL editor, then save again.' }
+  }
+
   return { error: error?.message }
 }
 

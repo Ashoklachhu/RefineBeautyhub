@@ -147,7 +147,7 @@ function CartButton() {
   )
 }
 
-export function Navbar() {
+export function Navbar({ phone = SITE.phone }: { phone?: string } = {}) {
   const { user, profile, isAdmin, isLoading } = useAuth()
   const [isOpen, setIsOpen] = useState(false)
   const pathname = usePathname()
@@ -217,13 +217,13 @@ export function Navbar() {
               <CartButton />
 
               {/* Phone */}
-              <a href={`tel:${SITE.phone.replace(/[^+0-9]/g, '')}`}
+              <a href={`tel:${phone.replace(/[^+0-9]/g, '')}`}
                 className="flex items-center gap-1.5 text-xs font-medium transition-colors"
                 style={{ color: 'rgba(255,255,255,0.5)' }}
                 onMouseEnter={e => (e.currentTarget.style.color = '#fff')}
                 onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.5)')}>
                 <Phone className="w-3.5 h-3.5" />
-                {SITE.phone}
+                {phone}
               </a>
 
               {/* Auth */}
@@ -393,11 +393,11 @@ export function Navbar() {
 
                 {/* Phone + Book */}
                 <div className="my-4 border-t" style={{ borderColor: '#f0e8e0' }} />
-                <a href={`tel:${SITE.phone.replace(/[^+0-9]/g, '')}`}
+                <a href={`tel:${phone.replace(/[^+0-9]/g, '')}`}
                   className="flex items-center gap-3 py-3 px-4 rounded-sm text-sm transition-colors hover:bg-stone-50"
                   style={{ color: '#7a6a5e' }}>
                   <Phone className="w-4 h-4" style={{ color: '#b8976b' }} />
-                  {SITE.phone}
+                  {phone}
                 </a>
                 <div className="mt-3">
                   <Link href="/booking"

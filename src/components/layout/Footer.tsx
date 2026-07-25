@@ -1,7 +1,9 @@
 import Link from 'next/link'
-import { Camera, Globe, PlayCircle, Phone, Mail, MapPin, Clock } from 'lucide-react'
+import { Phone, Mail, MapPin, Clock } from 'lucide-react'
 import { NAV_LINKS, SITE } from '@/constants'
-import { createServiceClient } from '@/lib/supabase/server'
+import { loadSiteSettings } from '@/lib/settings'
+import { resolveBranches } from '@/lib/branches'
+import { InstagramIcon, FacebookIcon, YouTubeIcon, TikTokIcon } from '@/components/icons/SocialIcons'
 import type { SiteSettings, OpeningHourEntry } from '@/types/database'
 
 // ── Static nav links (not user-editable) ─────────────────────
@@ -37,33 +39,20 @@ function fmt24(t: string): string {
 
 // ── Data fetch ────────────────────────────────────────────────
 
-async function loadSettings(): Promise<SiteSettings | null> {
-  try {
-    const supabase = createServiceClient()
-    const { data } = await supabase
-      .from('site_settings')
-      .select('*')
-      .eq('id', 'main')
-      .single()
-    return data as SiteSettings | null
-  } catch {
-    return null
-  }
-}
-
 // ── Component ─────────────────────────────────────────────────
 
 export async function Footer() {
-  const settings = await loadSettings()
+  const settings = await loadSiteSettings()
 
   // Fall back to constants if DB not yet seeded
   const phone     = settings?.phone     ?? SITE.phone
   const email     = settings?.email     ?? SITE.email
-  const address   = settings?.address   ?? SITE.address
-  const mapUrl    = settings?.map_url   ?? SITE.mapUrl
   const instagram = settings?.instagram ?? SITE.instagram
   const facebook  = settings?.facebook  ?? SITE.facebook
   const youtube   = settings?.youtube   ?? SITE.youtube
+  const tiktok    = settings?.tiktok    ?? SITE.tiktok
+
+  const branches = resolveBranches(settings)
 
   const hours: OpeningHourEntry[] = settings?.opening_hours?.length
     ? settings.opening_hours
@@ -104,10 +93,11 @@ export async function Footer() {
             {/* Social icons */}
             <div className="flex items-center gap-4">
               {[
-                { icon: Camera,     href: instagram, label: 'Instagram' },
-                { icon: Globe,      href: facebook,  label: 'Facebook' },
-                { icon: PlayCircle, href: youtube,   label: 'YouTube' },
-              ].map(({ icon: Icon, href, label }) => (
+                { icon: InstagramIcon, href: instagram, label: 'Instagram' },
+                { icon: FacebookIcon,  href: facebook,  label: 'Facebook' },
+                { icon: YouTubeIcon,   href: youtube,   label: 'YouTube' },
+                { icon: TikTokIcon,    href: tiktok,    label: 'TikTok' },
+              ].filter(s => s.href).map(({ icon: Icon, href, label }) => (
                 <a
                   key={label}
                   href={href}
@@ -205,17 +195,25 @@ export async function Footer() {
                   {email}
                 </a>
               </li>
-              <li>
-                <a
-                  href={mapUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-start gap-3 text-sm text-white/60 hover:text-white transition-colors group"
-                >
-                  <MapPin className="w-4 h-4 text-gold-400 mt-0.5 shrink-0" />
-                  <span>{address}</span>
-                </a>
-              </li>
+              {branches.map((branch) => (
+                <li key={branch.id || branch.name}>
+                  <a
+                    href={branch.map_url || SITE.mapUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-start gap-3 text-sm text-white/60 hover:text-white transition-colors group"
+                  >
+                    <MapPin className="w-4 h-4 text-gold-400 mt-0.5 shrink-0" />
+                    <span>
+                      <span className="block text-white/80 text-xs font-medium">{branch.name}</span>
+                      <span className="block">{branch.address}</span>
+                      {branch.phone && branch.phone !== phone && (
+                        <span className="block text-white/40 text-xs">{branch.phone}</span>
+                      )}
+                    </span>
+                  </a>
+                </li>
+              ))}
             </ul>
 
             {/* Opening Hours */}
