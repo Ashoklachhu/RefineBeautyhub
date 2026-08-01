@@ -41,7 +41,16 @@ export const OPENING_HOURS = [
   { day: 'Saturday', open: '9:00 AM', close: '8:00 PM', closed: false },
 ] as const
 
-export const NAV_LINKS = [
+/**
+ * The storefront is hidden until the full product range is ready.
+ * Setting this to `true` restores the Shop nav link, the cart button and
+ * drawer, the /shop pages and the shop entries in the sitemap — nothing
+ * was deleted. Admin product and order management stays available either
+ * way, so the catalogue can be prepared before launch.
+ */
+export const SHOP_ENABLED = false
+
+const ALL_NAV_LINKS = [
   { label: 'Home', href: '/' },
   { label: 'About', href: '/about' },
   { label: 'Services', href: '/services' },
@@ -49,6 +58,10 @@ export const NAV_LINKS = [
   { label: 'Academy', href: '/academy' },
   { label: 'Contact', href: '/contact' },
 ] as const
+
+export const NAV_LINKS = ALL_NAV_LINKS.filter(
+  link => SHOP_ENABLED || link.href !== '/shop'
+)
 
 export const SERVICE_CATEGORIES = [
   { value: 'hair', label: 'Hair', icon: 'scissors' },

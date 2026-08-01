@@ -1,6 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { createClient } from '@supabase/supabase-js'
 import { NextResponse, type NextRequest } from 'next/server'
+import { SHOP_ENABLED } from '@/constants'
 
 // Routes that require authentication
 const PROTECTED_ROUTES = ['/profile', '/bookings', '/dashboard']
@@ -26,6 +27,17 @@ const COMING_SOON_ALLOWED_PREFIXES = [
 
 export async function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname
+
+  // ── Storefront hidden until launch ────────────────────────────
+  // Catches /shop and every product page in one place, so an old link or
+  // search result lands on the homepage instead of a half-stocked shop.
+  // Admin product management lives under /admin and is unaffected.
+  if (!SHOP_ENABLED && path.startsWith('/shop')) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/'
+    url.search = ''
+    return NextResponse.redirect(url)
+  }
 
   if (process.env.COMING_SOON_MODE === 'true') {
     const isAllowed = COMING_SOON_ALLOWED_PREFIXES.some((p) => path.startsWith(p))

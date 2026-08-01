@@ -4,7 +4,7 @@ import { AnnouncementBar } from '@/components/layout/AnnouncementBar'
 import { CartDrawer } from '@/components/shop/CartDrawer'
 import { PageTransition } from '@/components/layout/PageTransition'
 import { loadSiteSettings } from '@/lib/settings'
-import { SITE } from '@/constants'
+import { SITE, SHOP_ENABLED } from '@/constants'
 
 export const dynamic = 'force-dynamic'
 
@@ -25,8 +25,8 @@ export default async function MarketingLayout({ children }: { children: React.Re
         <PageTransition>{children}</PageTransition>
       </main>
       <Footer />
-{/* Cart drawer — global, controlled via CartContext */}
-      <CartDrawer />
+      {/* Cart drawer — global, controlled via CartContext */}
+      {SHOP_ENABLED && <CartDrawer />}
     </>
   )
 }

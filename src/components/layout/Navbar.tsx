@@ -6,7 +6,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Menu, X, Phone, User, LogOut, LayoutDashboard, CalendarCheck, ChevronDown, CalendarCheck as Cal, ShoppingBag } from 'lucide-react'
 import { cn } from '@/utils/cn'
-import { NAV_LINKS, SITE } from '@/constants'
+import { NAV_LINKS, SITE, SHOP_ENABLED } from '@/constants'
 import { useAuth } from '@/providers/AuthProvider'
 import { useCart } from '@/providers/CartProvider'
 import { signOut } from '@/services/auth.service'
@@ -214,7 +214,7 @@ export function Navbar({ phone = SITE.phone }: { phone?: string } = {}) {
             {/* Desktop right */}
             <div className="hidden lg:flex items-center gap-3">
               {/* Cart */}
-              <CartButton />
+              {SHOP_ENABLED && <CartButton />}
 
               {/* Phone */}
               <a href={`tel:${phone.replace(/[^+0-9]/g, '')}`}
@@ -258,7 +258,7 @@ export function Navbar({ phone = SITE.phone }: { phone?: string } = {}) {
 
             {/* Mobile: cart + menu */}
             <div className="lg:hidden flex items-center gap-1">
-              <CartButton />
+              {SHOP_ENABLED && <CartButton />}
               <button onClick={() => setIsOpen(!isOpen)}
                 className="p-2 rounded-md transition-colors"
                 style={{ color: '#ffffff' }}>

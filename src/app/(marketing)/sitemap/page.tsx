@@ -4,6 +4,7 @@ import {
   Home, Scissors, ShoppingBag, GraduationCap,
   CalendarCheck, User, Lock, Sparkles, ExternalLink,
 } from 'lucide-react'
+import { SHOP_ENABLED } from '@/constants'
 
 export const metadata: Metadata = {
   title: 'Sitemap',
@@ -97,7 +98,9 @@ export default function SitemapPage() {
                 { label: 'Home',     href: '/',         desc: 'Welcome to Refined Beauty Hub'     },
                 { label: 'About Us', href: '/about',    desc: 'Our story, team, and values'       },
                 { label: 'Services', href: '/services', desc: 'All beauty services we offer'      },
-                { label: 'Shop',     href: '/shop',     desc: 'The Refined Edit — curated products' },
+                ...(SHOP_ENABLED
+                  ? [{ label: 'Shop', href: '/shop', desc: 'The Refined Edit — curated products' }]
+                  : []),
                 { label: 'Academy',  href: '/academy',  desc: 'Professional beauty education'     },
                 { label: 'Contact',  href: '/contact',  desc: 'Get in touch with us'              },
               ]}
@@ -122,7 +125,8 @@ export default function SitemapPage() {
               ]}
             />
 
-            {/* Shop */}
+            {/* Shop — hidden until the storefront launches */}
+            {SHOP_ENABLED && (
             <SitemapCard
               title="Shop"
               icon={ShoppingBag}
@@ -139,6 +143,7 @@ export default function SitemapPage() {
                 { label: 'Tools',         href: '/shop?category=tools',     desc: 'Professional tools & devices'     },
               ]}
             />
+            )}
 
             {/* Academy */}
             <SitemapCard
