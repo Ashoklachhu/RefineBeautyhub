@@ -177,9 +177,9 @@ export async function adminGetCourses() {
 export async function adminCreateCourse(values: {
   title: string; slug: string; category: string; level: string; format: string
   description?: string; short_description?: string; duration_text: string
-  price: number; max_students: number; image_url?: string
+  price: number; image_url?: string
   instructor_name?: string; has_certificate?: boolean; is_featured?: boolean
-  next_start_date?: string; display_order?: number; includes?: string[]
+  display_order?: number; includes?: string[]
 }): Promise<{ id?: string; error?: string }> {
   const { data, error } = await db()
     .from('academy_courses')

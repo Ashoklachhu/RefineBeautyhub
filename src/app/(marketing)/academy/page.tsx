@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { getAllCourses } from '@/services/academy.service'
-import { Clock, Users, Award, CheckCircle, ArrowRight, GraduationCap, Sparkles } from 'lucide-react'
+import { Clock, Award, CheckCircle, ArrowRight, GraduationCap, Sparkles } from 'lucide-react'
 import type { AcademyCourse, CourseLevel } from '@/types/database'
 
 export const metadata: Metadata = {
@@ -162,7 +162,6 @@ export default async function AcademyPage() {
 
                       <div className="flex items-center gap-4 text-xs text-muted-foreground mb-5">
                         <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" />{course.duration_text}</span>
-                        <span className="flex items-center gap-1"><Users className="w-3.5 h-3.5" />Max {course.max_students}</span>
                       </div>
 
                       <div className="flex items-center justify-between mt-auto pt-4 border-t border-border/50">
@@ -179,11 +178,6 @@ export default async function AcademyPage() {
                             </div>
                           ) : (
                             <p className="text-lg font-semibold">NPR {course.price.toLocaleString()}</p>
-                          )}
-                          {course.next_start_date && (
-                            <p className="text-xs text-muted-foreground mt-0.5">
-                              Starts {new Date(course.next_start_date).toLocaleDateString('en-NP', { month: 'short', day: 'numeric' })}
-                            </p>
                           )}
                         </div>
                         <div className="flex items-center gap-1 text-gold-600 text-sm font-medium group-hover:gap-2 transition-all">

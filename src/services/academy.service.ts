@@ -60,21 +60,15 @@ export async function enrollInCourse(
   // Use service client so guest enrollments are never blocked by RLS
   const supabase = createServiceClient()
 
-  // Check course capacity
+  // Courses no longer carry a seat limit, so this only confirms the course exists.
   const { data: courseRaw, error: courseErr } = await supabase
     .from('academy_courses')
-    .select('id, title, max_students, current_students')
+    .select('id, title')
     .eq('id', input.courseId)
     .single()
 
   if (courseErr) return fail(Errors.notFound('Course'))
   if (!courseRaw) return fail(Errors.notFound('Course'))
-
-  const course = courseRaw as Pick<AcademyCourse, 'id' | 'title' | 'max_students' | 'current_students'>
-
-  if (course.current_students >= course.max_students) {
-    return fail(Errors.conflict(`${course.title} is fully booked. Please join the waitlist.`))
-  }
 
   // Check for duplicate enrollment (logged-in users only)
   if (input.userId) {

@@ -33,12 +33,10 @@ export function CourseForm({ course, mode }: CourseFormProps) {
     duration_text:     course?.duration_text ?? '',
     price:             course?.price ?? 0,
     discounted_price:  course?.discounted_price ?? '' as number | '',
-    max_students:      course?.max_students ?? 10,
     image_url:         course?.image_url ?? '',
     instructor_name:   course?.instructor_name ?? '',
     has_certificate:   course?.has_certificate ?? false,
     is_featured:       course?.is_featured ?? false,
-    next_start_date:   course?.next_start_date ?? '',
     display_order:     course?.display_order ?? 99,
   })
   const [includes, setIncludes] = useState<string[]>(course?.includes ?? [])
@@ -134,11 +132,6 @@ export function CourseForm({ course, mode }: CourseFormProps) {
           )}
         </div>
         <div className="space-y-1.5">
-          <label className="text-xs font-medium text-gray-600 dark:text-neutral-300">Max Students</label>
-          <input type="number" min={1} value={form.max_students}
-            onChange={e => set('max_students', Number(e.target.value))} className="admin-input w-full" />
-        </div>
-        <div className="space-y-1.5">
           <label className="text-xs font-medium text-gray-600 dark:text-neutral-300">Duration Text *</label>
           <input required value={form.duration_text} onChange={e => set('duration_text', e.target.value)}
             className="admin-input w-full" placeholder="e.g. 4 Weeks / 40 Hours" />
@@ -147,11 +140,6 @@ export function CourseForm({ course, mode }: CourseFormProps) {
           <label className="text-xs font-medium text-gray-600 dark:text-neutral-300">Instructor Name</label>
           <input value={form.instructor_name} onChange={e => set('instructor_name', e.target.value)}
             className="admin-input w-full" placeholder="e.g. Priya Sharma" />
-        </div>
-        <div className="space-y-1.5">
-          <label className="text-xs font-medium text-gray-600 dark:text-neutral-300">Next Start Date</label>
-          <input type="date" value={form.next_start_date} onChange={e => set('next_start_date', e.target.value)}
-            className="admin-input w-full" />
         </div>
         <div className="space-y-1.5">
           <label className="text-xs font-medium text-gray-600 dark:text-neutral-300">Display Order</label>

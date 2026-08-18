@@ -4,7 +4,7 @@ import { useState, useTransition } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import { Edit2, Trash2, Users, Award, Eye, EyeOff, GraduationCap } from 'lucide-react'
+import { Edit2, Trash2, Award, Eye, EyeOff, GraduationCap } from 'lucide-react'
 import { adminDeleteCourse, adminUpdateCourse } from '@/app/actions/admin'
 import { AdminBadge } from './AdminBadge'
 import type { AcademyCourse, CourseLevel } from '@/types/database'
@@ -43,7 +43,7 @@ export function CoursesManager({ courses }: { courses: AcademyCourse[] }) {
         <table className="w-full text-sm min-w-[700px]">
           <thead>
             <tr className="border-b border-gray-200 dark:border-white/5">
-              {['Course', 'Category', 'Level', 'Price', 'Students', 'Actions'].map(h => (
+              {['Course', 'Category', 'Level', 'Price', 'Actions'].map(h => (
                 <th key={h} className="text-left px-4 py-3 text-xs font-medium text-gray-400 dark:text-neutral-500">{h}</th>
               ))}
             </tr>
@@ -75,12 +75,6 @@ export function CoursesManager({ courses }: { courses: AcademyCourse[] }) {
                   <AdminBadge label={c.level} color={levelColor[c.level]} />
                 </td>
                 <td className="px-4 py-3 text-gray-700 dark:text-neutral-200 text-xs font-medium">NPR {c.price.toLocaleString()}</td>
-                <td className="px-4 py-3">
-                  <div className="flex items-center gap-1 text-gray-600 dark:text-neutral-300 text-xs">
-                    <Users className="w-3 h-3 text-gray-400 dark:text-neutral-500" />
-                    {c.current_students}/{c.max_students}
-                  </div>
-                </td>
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-1">
                     <button onClick={() => handleToggle(c.id, c.is_active)}

@@ -1,8 +1,8 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { getCourseBySlug, getAllCourses } from '@/services/academy.service'
-import { Clock, Users, Award, CheckCircle, ArrowRight, GraduationCap, BookOpen, Calendar } from 'lucide-react'
+import { getCourseBySlug } from '@/services/academy.service'
+import { Clock, Award, CheckCircle, GraduationCap, BookOpen } from 'lucide-react'
 import type { CourseLevel, CourseFormat } from '@/types/database'
 import { EnrollForm } from '@/components/forms/EnrollForm'
 
@@ -37,8 +37,6 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ s
   const result = await getCourseBySlug(slug)
   if (!result.data) notFound()
   const course = result.data
-
-  const spotsLeft = course.max_students - course.current_students
 
   return (
     <>
@@ -85,33 +83,6 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ s
                     <span className="text-white/50 text-xs">Duration</span>
                   </div>
                   <p className="text-white text-sm font-medium">{course.duration_text}</p>
-                </div>
-                <div className="px-4 py-3 rounded-xl bg-white/5 border border-white/10">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Users className="w-3.5 h-3.5 text-gold-400" />
-                    <span className="text-white/50 text-xs">Batch Size</span>
-                  </div>
-                  <p className="text-white text-sm font-medium">Max {course.max_students} students</p>
-                </div>
-                {course.next_start_date && (
-                  <div className="px-4 py-3 rounded-xl bg-white/5 border border-white/10">
-                    <div className="flex items-center gap-2 mb-1">
-                      <Calendar className="w-3.5 h-3.5 text-gold-400" />
-                      <span className="text-white/50 text-xs">Next Batch</span>
-                    </div>
-                    <p className="text-white text-sm font-medium">
-                      {new Date(course.next_start_date).toLocaleDateString('en-NP', { month: 'long', day: 'numeric', year: 'numeric' })}
-                    </p>
-                  </div>
-                )}
-                <div className="px-4 py-3 rounded-xl bg-white/5 border border-white/10">
-                  <div className="flex items-center gap-2 mb-1">
-                    <GraduationCap className="w-3.5 h-3.5 text-gold-400" />
-                    <span className="text-white/50 text-xs">Spots Left</span>
-                  </div>
-                  <p className={`text-sm font-medium ${spotsLeft <= 3 ? 'text-red-400' : 'text-white'}`}>
-                    {spotsLeft > 0 ? `${spotsLeft} of ${course.max_students}` : 'Fully Booked'}
-                  </p>
                 </div>
               </div>
 
@@ -250,27 +221,11 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ s
                     <dt className="text-muted-foreground">Duration</dt>
                     <dd className="font-medium">{course.duration_text}</dd>
                   </div>
-                  {spotsLeft > 0 && (
-                    <div className="flex justify-between">
-                      <dt className="text-muted-foreground">Spots Left</dt>
-                      <dd className={`font-medium ${spotsLeft <= 3 ? 'text-red-500' : ''}`}>{spotsLeft}</dd>
-                    </div>
-                  )}
                 </dl>
 
                 <div className="gold-divider mb-6" />
 
-                {spotsLeft > 0 ? (
-                  <EnrollForm courseId={course.id} />
-                ) : (
-                  <div className="text-center py-4">
-                    <p className="text-sm font-medium text-muted-foreground mb-3">This batch is full</p>
-                    <Link href="/contact"
-                      className="flex items-center justify-center gap-2 w-full py-3 border border-border rounded-xl text-sm font-medium hover:bg-nude-50 transition-colors">
-                      Join Waitlist
-                    </Link>
-                  </div>
-                )}
+                <EnrollForm courseId={course.id} />
               </div>
             </div>
           </div>
