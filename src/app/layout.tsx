@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import { Cormorant_Garamond, Inter, Playfair_Display } from 'next/font/google'
+import Script from 'next/script'
 import { Providers } from '@/providers'
 import './globals.css'
 
@@ -79,6 +80,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     >
       <body className="min-h-full flex flex-col bg-background text-foreground overflow-x-hidden">
         <Providers>{children}</Providers>
+        {/* AI chatbot widget. `afterInteractive` is next/script's equivalent of
+            the async tag: it loads once the page is interactive, so the widget
+            never blocks the hero or the reels from painting. */}
+        <Script
+          src="https://kuro-production-280f.up.railway.app/widget.js"
+          data-token="7dab09c0-7485-4c95-a69d-a55f1440e90b"
+          strategy="afterInteractive"
+        />
       </body>
     </html>
   )
