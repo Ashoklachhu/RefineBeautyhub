@@ -88,6 +88,20 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           data-token="7dab09c0-7485-4c95-a69d-a55f1440e90b"
           strategy="afterInteractive"
         />
+
+        {/* Google Analytics 4 */}
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-YNK01YB6WG"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-YNK01YB6WG');
+          `}
+        </Script>
       </body>
     </html>
   )
