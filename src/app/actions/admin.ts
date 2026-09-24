@@ -2,6 +2,7 @@
 
 import { createServiceClient } from '@/lib/supabase/server'
 import { MAX_GALLERY_VIDEOS, isPlayableVideoUrl } from '@/lib/video'
+import { sendBookingStatusEmail } from '@/services/email.service'
 import type {
   Booking, BookingStatus, BookingSource, Service, AcademyCourse,
   Staff, GalleryItem, VideoGalleryItem, Testimonial, Profile, Category,
@@ -114,6 +115,14 @@ export async function adminUpdateBookingStatus(
 
   const { error } = await db().from('bookings').update(updates).eq('id', id)
   if (error) return { error: error.message }
+
+  // Tell the client where their booking stands. Best-effort: the status change
+  // has already been saved, so a mail failure must not surface as an error.
+  try {
+    await sendBookingStatusEmail(id, status)
+  } catch (err) {
+    console.error('[admin] status email failed:', err)
+  }
 
   return {}
 }

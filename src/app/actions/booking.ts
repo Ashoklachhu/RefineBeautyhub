@@ -4,6 +4,7 @@ import { createBooking, getAvailableSlots as _getSlots } from '@/services/bookin
 import { getAllServices } from '@/services/services.service'
 import { getAllStaff, getStaffByBranch } from '@/services/staff.service'
 import { getServerUser } from '@/lib/auth/get-server-user'
+import { sendNewBookingEmails } from '@/services/email.service'
 import type { ServiceWithCategory, Staff } from '@/types'
 import type { TimeSlotResult } from '@/services/booking.service'
 
@@ -52,6 +53,15 @@ export async function createBookingAction(
   )
 
   if (result.error) return { error: result.error.message }
+
+  // Receipt for the client and an alert for the salon. Awaited rather than
+  // fired-and-forgotten because serverless kills pending work once the
+  // response is returned — but a failure here must never fail the booking.
+  try {
+    await sendNewBookingEmails(result.data.id)
+  } catch (err) {
+    console.error('[booking] notification emails failed:', err)
+  }
 
   return { reference: result.data.reference }
 }

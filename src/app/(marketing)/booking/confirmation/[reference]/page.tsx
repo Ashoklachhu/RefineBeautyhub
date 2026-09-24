@@ -2,10 +2,11 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getBookingByReference } from '@/services/booking.service'
-import { CheckCircle, Calendar, Clock, User, Sparkles, ArrowRight, UserPlus, Star } from 'lucide-react'
+import { CheckCircle, Clock3, XCircle, Calendar, Clock, User, Sparkles, ArrowRight, UserPlus, Star } from 'lucide-react'
 
+// Neutral title: one page serves requests, confirmations and cancellations.
 export const metadata: Metadata = {
-  title: 'Booking Confirmed — Refined Beauty Hub',
+  title: 'Your Booking — Refined Beauty Hub',
 }
 
 export default async function BookingConfirmationPage({
@@ -28,6 +29,9 @@ export default async function BookingConfirmationPage({
 
   const clientName  = booking.profile?.full_name ?? booking.guest_name ?? 'Guest'
   const isGuest     = !booking.user_id
+  const isConfirmed = booking.status === 'confirmed'
+  const isCancelled = booking.status === 'cancelled'
+  const isCompleted = booking.status === 'completed'
 
   // Build pre-filled register URL for guest users
   const registerParams = new URLSearchParams()
@@ -40,16 +44,35 @@ export default async function BookingConfirmationPage({
     <section className="section-py min-h-[70vh] flex items-center">
       <div className="luxury-container">
         <div className="max-w-lg mx-auto text-center">
-          {/* Icon */}
-          <div className="w-20 h-20 rounded-full bg-green-50 border border-green-200 flex items-center justify-center mx-auto mb-6">
-            <CheckCircle className="w-10 h-10 text-green-500" />
+          {/* Icon — a request is not a confirmation, so only a confirmed
+              booking gets the green tick. */}
+          <div className={`w-20 h-20 rounded-full border flex items-center justify-center mx-auto mb-6
+            ${isConfirmed || isCompleted ? 'bg-green-50 border-green-200'
+            : isCancelled ? 'bg-red-50 border-red-200'
+            : 'bg-amber-50 border-amber-200'}`}>
+            {isConfirmed || isCompleted ? <CheckCircle className="w-10 h-10 text-green-500" />
+            : isCancelled ? <XCircle className="w-10 h-10 text-red-400" />
+            : <Clock3 className="w-10 h-10 text-amber-500" />}
           </div>
 
           <h1 className="text-3xl md:text-4xl font-light mb-2" style={{ fontFamily: 'var(--font-cormorant)' }}>
-            You&apos;re Booked!
+            {isConfirmed ? 'You’re Booked!'
+            : isCompleted ? 'Thank You for Visiting'
+            : isCancelled ? 'Booking Cancelled'
+            : 'Request Received'}
           </h1>
           <p className="text-muted-foreground text-sm mb-8">
-            Thank you, <strong>{clientName}</strong>. Your appointment is confirmed. We&apos;ll send a reminder to your email.
+            {isConfirmed ? (
+              <>Thank you, <strong>{clientName}</strong>. Your appointment is confirmed — we look forward to seeing you.</>
+            ) : isCompleted ? (
+              <>Thank you, <strong>{clientName}</strong>. We hope you loved your visit — we&apos;d love to see you again soon.</>
+            ) : isCancelled ? (
+              <>Hello <strong>{clientName}</strong>, this appointment has been cancelled.
+                If that wasn&apos;t expected, please get in touch and we&apos;ll put it right.</>
+            ) : (
+              <>Thank you, <strong>{clientName}</strong>. We have your request and our team will confirm it shortly.
+                We&apos;ve emailed you a copy of the details.</>
+            )}
           </p>
 
           {/* Reference */}
@@ -112,13 +135,17 @@ export default async function BookingConfirmationPage({
             : 'bg-nude-100 text-nude-600 border border-nude-200'}`}>
             <span className={`w-2 h-2 rounded-full ${
               booking.status === 'confirmed' ? 'bg-green-500' : booking.status === 'pending' ? 'bg-yellow-500' : 'bg-nude-400'}`} />
-            {booking.status === 'pending' ? 'Pending Confirmation' : booking.status}
+            {booking.status === 'pending' ? 'Awaiting Confirmation' : booking.status}
           </div>
 
           <p className="text-xs text-muted-foreground mb-8">
-            {booking.status === 'pending'
-              ? 'We\'ll confirm your booking within a few hours. You\'ll receive an email once confirmed.'
-              : 'Your booking has been confirmed. See you soon!'}
+            {isConfirmed
+              ? 'Your booking is confirmed. Please arrive five minutes early.'
+              : isCompleted
+                ? 'This appointment is complete. Book again any time.'
+              : isCancelled
+                ? 'This booking has been cancelled. Please contact us if this was unexpected.'
+                : 'This is a request, not a confirmed booking yet. Our team reviews every request and will email you as soon as it is confirmed — usually within a few hours.'}
           </p>
 
           {/* ── Guest: Create Account Reminder ────────────────── */}
