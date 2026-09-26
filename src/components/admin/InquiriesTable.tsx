@@ -1,8 +1,13 @@
 'use client'
 
+import { useState, useTransition } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
+import { toast } from 'sonner'
 import { MessageSquare, ChevronLeft, ChevronRight, AlertCircle, Clock, CheckCircle, XCircle, Flame } from 'lucide-react'
+import { adminDeleteInquiries } from '@/app/actions/admin'
+import { useSelection } from './useSelection'
+import { BulkBar, RowCheckbox } from './BulkBar'
 import type { ContactInquiry, InquiryStatus, InquiryPriority } from '@/types/database'
 
 // ── Config ────────────────────────────────────────────────────
@@ -52,6 +57,25 @@ export function InquiriesTable({ inquiries, total, page, status, priority }: Pro
   const pathname = usePathname()
   const totalPages = Math.ceil(total / 25)
 
+  const sel = useSelection(inquiries)
+  const [busy, setBusy] = useState(false)
+  const [, start] = useTransition()
+
+  function bulkDelete() {
+    const n = sel.count
+    if (!confirm(`Delete ${n} inquir${n === 1 ? 'y' : 'ies'} permanently? This cannot be undone.`)) return
+    const ids = sel.ids
+    setBusy(true)
+    start(async () => {
+      const { error } = await adminDeleteInquiries(ids)
+      setBusy(false)
+      if (error) { toast.error(error); return }
+      toast.success(`${n} inquir${n === 1 ? 'y' : 'ies'} deleted`)
+      sel.clear()
+      router.refresh()
+    })
+  }
+
   function nav(params: Record<string, string>) {
     const sp = new URLSearchParams({ status, priority, page: String(page), ...params })
     router.push(`${pathname}?${sp.toString()}`)
@@ -92,12 +116,20 @@ export function InquiriesTable({ inquiries, total, page, status, priority }: Pro
         ) : (
           <div className="divide-y divide-gray-100 dark:divide-white/5">
             {/* Header */}
-            <div className="grid grid-cols-[1fr_160px_100px_90px_80px] gap-4 px-5 py-3 text-[10px] font-semibold tracking-wider text-gray-400 dark:text-neutral-500 uppercase">
+            <div className="flex items-center gap-3 px-5 py-3">
+              <RowCheckbox
+                checked={sel.allSelected}
+                indeterminate={sel.someSelected}
+                onChange={sel.toggleAll}
+                label="Select all inquiries on this page"
+              />
+              <div className="grid grid-cols-[1fr_160px_100px_90px_80px] gap-4 flex-1 text-[10px] font-semibold tracking-wider text-gray-400 dark:text-neutral-500 uppercase">
               <span>Contact</span>
               <span>Subject</span>
               <span>Status</span>
               <span>Priority</span>
               <span className="text-right">Time</span>
+              </div>
             </div>
 
             {inquiries.map(inq => {
@@ -105,8 +137,15 @@ export function InquiriesTable({ inquiries, total, page, status, priority }: Pro
               const pr = PRIORITY_CONFIG[inq.priority ?? 'normal']
               const StIcon = st.icon
               return (
-                <Link key={inq.id} href={`/admin/inquiries/${inq.id}`}
-                  className="grid grid-cols-[1fr_160px_100px_90px_80px] gap-4 px-5 py-4 items-center hover:bg-gray-50 dark:hover:bg-white/[0.02] transition-colors group">
+                <div key={inq.id}
+                  className={`flex items-center gap-3 px-5 transition-colors ${sel.isSelected(inq.id) ? 'bg-gold-500/5' : ''}`}>
+                <RowCheckbox
+                  checked={sel.isSelected(inq.id)}
+                  onChange={() => sel.toggle(inq.id)}
+                  label={`Select inquiry from ${inq.name}`}
+                />
+                <Link href={`/admin/inquiries/${inq.id}`}
+                  className="grid grid-cols-[1fr_160px_100px_90px_80px] gap-4 py-4 flex-1 items-center hover:bg-gray-50 dark:hover:bg-white/[0.02] transition-colors group">
                   {/* Contact */}
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
@@ -144,11 +183,14 @@ export function InquiriesTable({ inquiries, total, page, status, priority }: Pro
                   {/* Time */}
                   <p className="text-xs text-gray-300 dark:text-neutral-600 text-right">{timeAgo(inq.created_at)}</p>
                 </Link>
+                </div>
               )
             })}
           </div>
         )}
       </div>
+
+      <BulkBar count={sel.count} noun="inquiry" plural="inquiries" busy={busy} onClear={sel.clear} onDelete={bulkDelete} />
 
       {/* Pagination */}
       {totalPages > 1 && (

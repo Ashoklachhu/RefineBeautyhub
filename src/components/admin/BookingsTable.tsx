@@ -7,7 +7,9 @@ import { ChevronLeft, ChevronRight, Check, X, RotateCcw, Clock, Eye, Plus, Penci
 import { AdminBadge } from './AdminBadge'
 import { BookingDetailPanel } from './BookingDetailPanel'
 import { BookingFormPanel } from './BookingFormPanel'
-import { adminUpdateBookingStatus } from '@/app/actions/admin'
+import { adminUpdateBookingStatus, adminDeleteBookings } from '@/app/actions/admin'
+import { useSelection } from './useSelection'
+import { BulkBar, RowCheckbox } from './BulkBar'
 import { BRANCHES } from '@/constants'
 import type { Booking, BookingStatus, BookingSource, Service, Staff } from '@/types/database'
 
@@ -49,6 +51,29 @@ export function BookingsTable({ bookings, total, page, status, branch = 'all', s
   const [creating,  setCreating]   = useState(false)
   const pageSize    = 20
   const totalPages  = Math.ceil(total / pageSize)
+
+  const sel = useSelection(bookings)
+  const [bulkBusy, setBulkBusy] = useState(false)
+
+  function bulkDelete() {
+    const n = sel.count
+    if (!confirm(
+      `Delete ${n} booking${n === 1 ? '' : 's'} permanently?\n\n` +
+      'This erases the record entirely, including its revenue from your reports. ' +
+      'To keep the history, cancel the booking instead.'
+    )) return
+
+    const ids = sel.ids
+    setBulkBusy(true)
+    start(async () => {
+      const { error } = await adminDeleteBookings(ids)
+      setBulkBusy(false)
+      if (error) { toast.error(error); return }
+      toast.success(`${n} booking${n === 1 ? '' : 's'} deleted`)
+      sel.clear()
+      router.refresh()
+    })
+  }
 
   function navigate(params: Record<string, string>) {
     const sp = new URLSearchParams({ status, branch, page: String(page), ...params })
@@ -119,6 +144,14 @@ export function BookingsTable({ bookings, total, page, status, branch = 'all', s
             <table className="w-full text-sm min-w-[900px]">
               <thead>
                 <tr className="border-b border-gray-200 dark:border-white/5">
+                  <th className="px-4 py-3 w-10">
+                    <RowCheckbox
+                      checked={sel.allSelected}
+                      indeterminate={sel.someSelected}
+                      onChange={sel.toggleAll}
+                      label="Select all bookings on this page"
+                    />
+                  </th>
                   {['Reference', 'Client', 'Service', 'Date & Time', 'Artist', 'Branch', 'Source', 'Amount', 'Status', 'Actions'].map(h => (
                     <th key={h} className="text-left px-4 py-3 text-xs font-medium text-gray-400 dark:text-neutral-500">{h}</th>
                   ))}
@@ -127,7 +160,7 @@ export function BookingsTable({ bookings, total, page, status, branch = 'all', s
               <tbody>
                 {bookings.length === 0 && (
                   <tr>
-                    <td colSpan={10} className="px-4 py-12 text-center text-gray-400 dark:text-neutral-500 text-sm">
+                    <td colSpan={11} className="px-4 py-12 text-center text-gray-400 dark:text-neutral-500 text-sm">
                       No bookings found.
                     </td>
                   </tr>
@@ -140,9 +173,17 @@ export function BookingsTable({ bookings, total, page, status, branch = 'all', s
                   const SrcIcon = srcCfg.icon
                   return (
                     <tr key={b.id}
-                      className="border-b border-gray-200 dark:border-white/5 hover:bg-gray-50 dark:hover:bg-white/[0.02] transition-colors cursor-pointer"
+                      className={`border-b border-gray-200 dark:border-white/5 hover:bg-gray-50 dark:hover:bg-white/[0.02] transition-colors cursor-pointer
+                        ${sel.isSelected(b.id) ? 'bg-gold-500/5' : ''}`}
                       onClick={() => setSelected(b)}
                     >
+                      <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
+                        <RowCheckbox
+                          checked={sel.isSelected(b.id)}
+                          onChange={() => sel.toggle(b.id)}
+                          label={`Select booking ${b.reference}`}
+                        />
+                      </td>
                       <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
                         <button
                           onClick={() => setSelected(b)}
@@ -275,6 +316,8 @@ export function BookingsTable({ bookings, total, page, status, branch = 'all', s
           )}
         </div>
       </div>
+
+      <BulkBar count={sel.count} noun="booking" busy={bulkBusy} onClear={sel.clear} onDelete={bulkDelete} />
 
       {/* Booking detail slide-over */}
       {selected && (

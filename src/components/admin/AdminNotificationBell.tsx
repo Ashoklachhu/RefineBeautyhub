@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useTransition } from 'react'
 import Link from 'next/link'
-import { Bell, CalendarCheck, BookOpen, MessageSquare, RefreshCw, ChevronRight, Clock, ShoppingBag } from 'lucide-react'
+import { Bell, CalendarCheck, BookOpen, MessageSquare, RefreshCw, ChevronRight, Clock, ShoppingBag, Bot } from 'lucide-react'
 import { getAdminNotifications } from '@/app/actions/admin'
 
 type Notification = {
@@ -10,6 +10,7 @@ type Notification = {
   enrollments: Array<{ id: string; reference: string; guest_name: string | null; created_at: string; course: { title: string } | null; profile: { full_name: string } | null }>
   inquiries:   Array<{ id: string; name: string; email: string; subject: string; created_at: string }>
   shopOrders:  Array<{ id: string; reference: string; customer_name: string; customer_email: string; item_count: number; total_amount: number; created_at: string }>
+  leads:       Array<{ id: string; name: string | null; phone: string | null; email: string | null; interest: string | null; score: number | null; received_at: string }>
   total: number
 }
 
@@ -309,6 +310,56 @@ export function AdminNotificationBell() {
                           <span className="text-[9px] text-gray-300 dark:text-neutral-600 flex-shrink-0 pt-0.5 flex items-center gap-0.5">
                             <Clock className="w-2 h-2" />
                             {timeAgo(o.created_at)}
+                          </span>
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Chatbot leads */}
+                {data.leads.length > 0 && (
+                  <div className={(data.bookings.length > 0 || data.enrollments.length > 0 || data.inquiries.length > 0 || data.shopOrders.length > 0) ? 'border-t border-gray-200 dark:border-white/5' : ''}>
+                    <div className="flex items-center justify-between px-4 pt-3 pb-2">
+                      <div className="flex items-center gap-1.5">
+                        <Bot className="w-3 h-3 text-gold-400" />
+                        <span className="text-[10px] font-semibold text-gray-500 dark:text-neutral-400 uppercase tracking-wider">
+                          Chatbot Leads
+                        </span>
+                        <span className="px-1 rounded bg-gold-500/15 text-gold-400 text-[9px] font-bold">
+                          {data.leads.length}
+                        </span>
+                      </div>
+                      <Link href="/admin/leads" onClick={() => setOpen(false)}
+                        className="text-[10px] text-gold-400 hover:text-gold-300 transition-colors flex items-center gap-0.5">
+                        View all <ChevronRight className="w-2.5 h-2.5" />
+                      </Link>
+                    </div>
+                    <div className="space-y-px">
+                      {data.leads.map(l => (
+                        <Link
+                          key={l.id}
+                          href="/admin/leads"
+                          onClick={() => setOpen(false)}
+                          className="flex items-start gap-3 px-4 py-2.5 hover:bg-gray-50 dark:hover:bg-white/[0.03] transition-colors group"
+                        >
+                          <div className="w-7 h-7 rounded-lg bg-gold-500/10 flex items-center justify-center flex-shrink-0 mt-0.5 group-hover:bg-gold-500/15 transition-colors">
+                            <Bot className="w-3.5 h-3.5 text-gold-400" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-medium text-gray-900 dark:text-white truncate">
+                              {l.name?.trim() || 'Unnamed lead'}
+                              {typeof l.score === 'number' && (
+                                <span className="ml-1.5 text-[9px] font-semibold text-emerald-500">{l.score}</span>
+                              )}
+                            </p>
+                            <p className="text-[10px] text-gray-500 dark:text-neutral-400 truncate mt-0.5">
+                              {[l.interest, l.phone || l.email].filter(Boolean).join(' · ') || 'New chatbot lead'}
+                            </p>
+                          </div>
+                          <span className="text-[9px] text-gray-300 dark:text-neutral-600 flex-shrink-0 pt-0.5 flex items-center gap-0.5">
+                            <Clock className="w-2 h-2" />
+                            {timeAgo(l.received_at)}
                           </span>
                         </Link>
                       ))}

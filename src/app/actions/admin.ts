@@ -329,6 +329,31 @@ export async function adminDeleteLead(id: string): Promise<{ error?: string }> {
   return { error: error?.message }
 }
 
+// ── Bulk delete ───────────────────────────────────────────────
+// One statement per table rather than a loop, so a partial failure cannot
+// leave half the selection deleted.
+
+async function deleteMany(table: string, ids: string[]): Promise<{ deleted: number; error?: string }> {
+  const clean = [...new Set(ids.filter(Boolean))]
+  if (clean.length === 0) return { deleted: 0, error: 'Nothing selected' }
+
+  const { error } = await db().from(table).delete().in('id', clean)
+  if (error) return { deleted: 0, error: error.message }
+  return { deleted: clean.length }
+}
+
+export async function adminDeleteLeads(ids: string[]) {
+  return deleteMany('kuro_leads', ids)
+}
+
+export async function adminDeleteInquiries(ids: string[]) {
+  return deleteMany('contact_inquiries', ids)
+}
+
+export async function adminDeleteBookings(ids: string[]) {
+  return deleteMany('bookings', ids)
+}
+
 // ── Video Gallery ─────────────────────────────────────────────
 
 export async function adminGetVideos() {
@@ -720,7 +745,7 @@ export async function adminGetUserWithBookings(userId: string) {
 
 export async function getAdminNotifications() {
   const supabase = db()
-  const [pendingBookings, pendingEnrollments, newInquiries, pendingShopOrders] = await Promise.allSettled([
+  const [pendingBookings, pendingEnrollments, newInquiries, pendingShopOrders, newLeads] = await Promise.allSettled([
     supabase
       .from('bookings')
       .select('id, reference, guest_name, booking_date, start_time, created_at, service:services!service_id(name), profile:profiles!user_id(full_name)')
@@ -745,19 +770,28 @@ export async function getAdminNotifications() {
       .eq('status', 'pending')
       .order('created_at', { ascending: false })
       .limit(5),
+    // allSettled keeps this from breaking the bell before migration 018 runs.
+    supabase
+      .from('kuro_leads')
+      .select('id, name, phone, email, interest, score, received_at')
+      .eq('status', 'new')
+      .order('received_at', { ascending: false })
+      .limit(5),
   ])
 
   const bookings    = pendingBookings.status    === 'fulfilled' ? (pendingBookings.value.data    ?? []) : []
   const enrollments = pendingEnrollments.status === 'fulfilled' ? (pendingEnrollments.value.data ?? []) : []
   const inquiries   = newInquiries.status       === 'fulfilled' ? (newInquiries.value.data       ?? []) : []
   const shopOrders  = pendingShopOrders.status  === 'fulfilled' ? (pendingShopOrders.value.data  ?? []) : []
+  const leads       = newLeads.status           === 'fulfilled' ? (newLeads.value.data           ?? []) : []
 
   return {
     bookings:    bookings    as unknown as Array<{ id: string; reference: string; guest_name: string | null; booking_date: string; start_time: string; created_at: string; service: { name: string } | null; profile: { full_name: string } | null }>,
     enrollments: enrollments as unknown as Array<{ id: string; reference: string; guest_name: string | null; created_at: string; course: { title: string } | null; profile: { full_name: string } | null }>,
     inquiries:   inquiries   as unknown as Array<{ id: string; name: string; email: string; subject: string; created_at: string }>,
     shopOrders:  shopOrders  as unknown as Array<{ id: string; reference: string; customer_name: string; customer_email: string; item_count: number; total_amount: number; created_at: string }>,
-    total: bookings.length + enrollments.length + inquiries.length + shopOrders.length,
+    leads:       leads       as unknown as Array<{ id: string; name: string | null; phone: string | null; email: string | null; interest: string | null; score: number | null; received_at: string }>,
+    total: bookings.length + enrollments.length + inquiries.length + shopOrders.length + leads.length,
   }
 }
 

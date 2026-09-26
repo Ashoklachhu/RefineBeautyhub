@@ -7,7 +7,9 @@ import {
   MessageSquare, Phone, Mail, Trash2, Loader2, ChevronDown, ChevronUp,
   Bot, Sparkles, Check,
 } from 'lucide-react'
-import { adminUpdateLeadStatus, adminUpdateLeadNotes, adminDeleteLead } from '@/app/actions/admin'
+import { adminUpdateLeadStatus, adminUpdateLeadNotes, adminDeleteLead, adminDeleteLeads } from '@/app/actions/admin'
+import { useSelection } from './useSelection'
+import { BulkBar, RowCheckbox } from './BulkBar'
 import type { KuroLead, KuroLeadStatus } from '@/types/database'
 
 const STATUSES: { value: KuroLeadStatus | 'all'; label: string }[] = [
@@ -45,10 +47,12 @@ function ScoreBadge({ score }: { score: number | null }) {
   )
 }
 
-function LeadRow({ lead, busy, onAction }: {
+function LeadRow({ lead, busy, onAction, checked, onToggle }: {
   lead: KuroLead
   busy: boolean
   onAction: (fn: () => Promise<{ error?: string }>, msg?: string) => void
+  checked: boolean
+  onToggle: () => void
 }) {
   const [open, setOpen]   = useState(false)
   const [notes, setNotes] = useState(lead.notes ?? '')
@@ -56,9 +60,13 @@ function LeadRow({ lead, busy, onAction }: {
   const detailEntries = Object.entries(lead.details ?? {})
 
   return (
-    <div className="rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-neutral-900">
+    <div className={`rounded-2xl border bg-white dark:bg-neutral-900 transition-colors
+      ${checked ? 'border-gold-500/50 ring-1 ring-gold-500/20' : 'border-gray-200 dark:border-white/10'}`}>
       {/* Summary */}
       <div className="flex items-start gap-4 p-4">
+        <div className="pt-1">
+          <RowCheckbox checked={checked} onChange={onToggle} label={`Select ${lead.name ?? 'lead'}`} />
+        </div>
         <div className="w-9 h-9 rounded-full bg-gold-500/15 flex items-center justify-center flex-shrink-0">
           <Bot className="w-4 h-4 text-gold-400" />
         </div>
@@ -206,6 +214,22 @@ export function LeadsTable({ leads, error }: { leads: KuroLead[]; error?: string
   }
 
   const visible = filter === 'all' ? leads : leads.filter(l => l.status === filter)
+  const sel = useSelection(visible)
+
+  function bulkDelete() {
+    const n = sel.count
+    if (!confirm(`Delete ${n} lead${n === 1 ? '' : 's'} permanently? This cannot be undone.`)) return
+    const ids = sel.ids
+    setBusy(true)
+    start(async () => {
+      const { error: bulkError } = await adminDeleteLeads(ids)
+      setBusy(false)
+      if (bulkError) { toast.error(bulkError); return }
+      toast.success(`${n} lead${n === 1 ? '' : 's'} deleted`)
+      sel.clear()
+      router.refresh()
+    })
+  }
 
   if (error) {
     return (
@@ -237,10 +261,19 @@ export function LeadsTable({ leads, error }: { leads: KuroLead[]; error?: string
         })}
       </div>
 
-      {busy && (
-        <p className="flex items-center gap-2 text-xs text-gray-400">
-          <Loader2 className="w-3.5 h-3.5 animate-spin" /> Saving…
-        </p>
+      {visible.length > 0 && (
+        <div className="flex items-center gap-2.5 px-1">
+          <RowCheckbox
+            checked={sel.allSelected}
+            indeterminate={sel.someSelected}
+            onChange={sel.toggleAll}
+            label="Select all leads"
+          />
+          <span className="text-xs text-gray-400 dark:text-neutral-500">
+            {sel.count > 0 ? `${sel.count} selected` : `Select all ${visible.length}`}
+          </span>
+          {busy && <Loader2 className="w-3.5 h-3.5 animate-spin text-gray-400 ml-1" />}
+        </div>
       )}
 
       {visible.length === 0 ? (
@@ -256,10 +289,19 @@ export function LeadsTable({ leads, error }: { leads: KuroLead[]; error?: string
       ) : (
         <div className="space-y-3">
           {visible.map(lead => (
-            <LeadRow key={lead.id} lead={lead} busy={busy} onAction={runAction} />
+            <LeadRow
+              key={lead.id}
+              lead={lead}
+              busy={busy}
+              onAction={runAction}
+              checked={sel.isSelected(lead.id)}
+              onToggle={() => sel.toggle(lead.id)}
+            />
           ))}
         </div>
       )}
+
+      <BulkBar count={sel.count} noun="lead" busy={busy} onClear={sel.clear} onDelete={bulkDelete} />
     </div>
   )
 }
