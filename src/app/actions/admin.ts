@@ -5,7 +5,7 @@ import { MAX_GALLERY_VIDEOS, isPlayableVideoUrl } from '@/lib/video'
 import { sendBookingStatusEmail } from '@/services/email.service'
 import type {
   Booking, BookingStatus, BookingSource, Service, AcademyCourse,
-  Staff, GalleryItem, VideoGalleryItem, Testimonial, Profile, Category,
+  Staff, GalleryItem, VideoGalleryItem, KuroLead, KuroLeadStatus, Testimonial, Profile, Category,
   Enrollment, EnrollmentStatus, SiteSettings, AnnouncementBar,
   ContactInquiry, InquiryNote, InquiryStatus, InquiryPriority, NoteType,
 } from '@/types/database'
@@ -277,6 +277,55 @@ export async function adminDeleteGalleryItem(id: string): Promise<{ error?: stri
 
 export async function adminToggleGalleryFeatured(id: string, featured: boolean): Promise<{ error?: string }> {
   const { error } = await db().from('gallery').update({ is_featured: featured }).eq('id', id)
+  return { error: error?.message }
+}
+
+// ── Kuro chatbot leads ────────────────────────────────────────
+
+export async function adminGetLeads(filters: { status?: string } = {}) {
+  let query = db()
+    .from('kuro_leads')
+    .select('*', { count: 'exact' })
+    .order('received_at', { ascending: false })
+    .limit(200)
+
+  if (filters.status && filters.status !== 'all') {
+    query = query.eq('status', filters.status)
+  }
+
+  const { data, count, error } = await query
+
+  // The table only exists after migration 018; surface that rather than
+  // rendering an empty page that looks like "no leads yet".
+  return {
+    leads: (data ?? []) as KuroLead[],
+    count: count ?? 0,
+    error: error?.message,
+  }
+}
+
+export async function adminUpdateLeadStatus(
+  id: string, status: KuroLeadStatus
+): Promise<{ error?: string }> {
+  const { error } = await db()
+    .from('kuro_leads')
+    .update({ status, updated_at: new Date().toISOString() })
+    .eq('id', id)
+  return { error: error?.message }
+}
+
+export async function adminUpdateLeadNotes(
+  id: string, notes: string
+): Promise<{ error?: string }> {
+  const { error } = await db()
+    .from('kuro_leads')
+    .update({ notes: notes.trim() || null, updated_at: new Date().toISOString() })
+    .eq('id', id)
+  return { error: error?.message }
+}
+
+export async function adminDeleteLead(id: string): Promise<{ error?: string }> {
+  const { error } = await db().from('kuro_leads').delete().eq('id', id)
   return { error: error?.message }
 }
 

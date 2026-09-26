@@ -347,6 +347,30 @@ export interface AnnouncementBar {
   updated_at: string
 }
 
+export type KuroLeadStatus = 'new' | 'contacted' | 'converted' | 'closed'
+
+export interface KuroLead {
+  id:              string
+  resource_id:     string
+  lead_id:         string | null
+  session_id:      string | null
+  name:            string | null
+  phone:           string | null
+  email:           string | null
+  interest:        string | null
+  message:         string | null
+  source:          string | null
+  channel:         string | null
+  score:           number | null
+  kuro_status:     string | null
+  details:         Record<string, unknown>
+  lead_created_at: string | null
+  status:          KuroLeadStatus
+  notes:           string | null
+  received_at:     string
+  updated_at:      string
+}
+
 export interface BranchInfo {
   id:      string
   name:    string
